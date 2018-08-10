@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<script>
+$(document).ready(function(){
+
+
+if(localStorage.getItem('org-count')==0){
+alert("No organisation selected");
+window.location.href="homepage.html";
+}
+document.addEventListener('deviceready', onDeviceReady, false);
+});
+
+function onDeviceReady(){
+      
+	 
+var draftid = {};
+draftid['id']= new Array();
+localStorage.setItem('draftids',JSON.stringify(draftid));   //Create an empty local storage to store the checked orders from drafts list
+
+//get phone number and drafts list of user from local storage
+var num = localStorage.getItem('phonenumber');
+var all_drafts = JSON.parse(localStorage.getItem('drafts'+num));
+var currentorgid = localStorage.getItem('orgid');
+
+var draftcontent='<div><table data-role="table" data-mode="columntoggle" class="ui-responsive" id="draftTable">'+
+ '<tbody>'+
+ '<tr>' +
+ '<th></th>' +
+  '<th>Time</th>' +
+  '<th>Date</th>' +
+ '</tr>' ;
+
+ if( all_drafts.mydrafts.length == 0 )
+  {
+  alert("No drafts to display for the current organization..");
+  window.location.href= "homepage.html";
+  }
+  
+  for( var x=0; all_drafts.mydrafts[x] ; x++ ){
+ if(all_drafts.mydrafts[x].orgID === currentorgid){
+ draftcontent+='<tr>' ;
+ draftcontent+= '<td><img src="images/uncheck.png" onclick="changetocheck('+x+')" id="img'+x+'" style="width:20px;height:20px;"></img></td>';
+ draftcontent+= '<td><div onclick="show_draft('+x+')" ><label>'+all_drafts.mydrafts[x].time+'</label></div></td>';
+ draftcontent+= '<td><div onclick="show_draft('+x+')"><label>'+all_drafts.mydrafts[x].date+'</label></div></td>';
+ draftcontent+= '</tr>';
+  }
+  }
+ 
+  draftcontent += '</tbody></table></div>' ;
+  
+ $("#selectid").controlgroup("container").append(draftcontent);
+  $("[data-role=controlgroup]").enhanceWithin().controlgroup("refresh");
+  
+  // $( draftcontent ).appendTo( "#drafts_here" ).enhanceWithin();
+ 
+//for windows
+if (device.platform == "windows") {
+    WinJS.Application.onbackclick = function () {
+        onBackKeyDown();
+        return true; // This line is important, without it the app closes.
+    }
+}
+//for android
+else {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+}
+}
+//back button function
+function onBackKeyDown(){
+history.go(-1);  
+return true;
+}
+</script>
+<style>
+body .ui-li .ui-li-desc {
+ white-space: normal;
+ }
+ body .ui-header .ui-title {
+ white-space: normal;
+ }
+ body .ui-btn-text {
+white-space: normal;
+}
+body .ui-footer .ui-title {
+ white-space: normal;
+ }
+th {
+    border-bottom: 1px solid #d6d6d6;
+}
+tr {
+    border-bottom: 1px solid #d6d6d6;
+}
+p{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+#h11{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+.ui-table-columntoggle-btn {
+    display: none !important;
+}
+</style>
+</head>
+<body>
+
+<div data-role="page" id= "draftorderpage">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+    <h1>Draft Order Items</h1>	
+</div>
+<div data-role="main" class="ui-content">
+
+	<div data-role="content">
+    <div data-role="controlgroup" id="selectid">
+
+    </div>
+</div>
+</div>
+ 
+<div data-role="footer" data-position="fixed" data-theme="b">
+   <h1> <a href="" onclick="deleteorder()"  data-transition="fade" class="ui-btn ui-btn-b ui-shadow ui-inline ui-icon-delete ui-btn-icon-left" >Delete</a>
+   <a href="#confirmorderpage" onclick= "order()"  data-transition="fade"  class="ui-btn ui-btn-b ui-shadow ui-inline ui-icon-check ui-btn-icon-right" >Order</a> 
+   </h1>
+</div>
+<script>
+// Function to alternate between checked and unchecked image
+function changetocheck(x){
+
+// get the empty store of drafts from local storage to fill wit checked orders
+var draftids = JSON.parse(localStorage.getItem('draftids')); 
+
+var img = document.getElementById('img'+x);
+
+//alternate the source of image 
+if (img.src.match("checked")) {
+        img.src = "images/uncheck.png";	    
+var index = draftids.id.indexOf(x);
+if (index > -1) {
+    draftids.id.splice(index, 1);       // remove selected order from list 
+}
+		
+    } 
+	else {
+        img.src = "images/checked.png";
+		draftids.id.push(x);            //add selected order to list 
+    }
+	
+	draftids.id.sort();         // sort the list of orders
+	
+	//save the drafts back to local storage
+	localStorage.setItem('draftids',JSON.stringify(draftids));
+}
+
+
+// Function to show selected draft in new page
+function show_draft(id){ 
+
+$('#here').empty(); // empty the contents of page where new draft is to be displayed
+
+var onload = '<div><table data-role="table" data-mode="columntoggle" class="ui-responsive ui-shadow" id="myTable">'+
+ '<tbody>'+
+ '<tr>' +
+ '<th>Item No.</th>' +
+  '<th>Grocery Item</th>' +
+  '<th>Quantity<br>(kg\\doz\\ltr)</th>' +
+  '<th> Cost(&#8377)</th>' +
+ '</tr>' ;
+ var totalcost = 0;
+
+ // Retrieve user details and drafts list from local storage
+ var num = localStorage.getItem('phonenumber');
+ var draftitems = JSON.parse(localStorage.getItem('drafts'+num));
+ 
+ 
+  for( var x=0; draftitems.mydrafts[id].orderItems[x] ; x++ ){
+  onload += '<tr>' +
+  '<td>'+(x+1)+'.</td>' +
+  '<td>' +draftitems.mydrafts[id].orderItems[x].name+ '</td>' +
+  '<td> '+draftitems.mydrafts[id].orderItems[x].quantity+ '</td>' +
+  '<td>' +draftitems.mydrafts[id].orderItems[x].cost+'</td>' +
+ '</tr>' ;
+  totalcost += new Number(draftitems.mydrafts[id].orderItems[x].cost);
+  }
+ 
+  onload += '<br><tr><td><b>Total:</b><td></td><td></td><td>'+totalcost+'&#8377</td></tr>';
+  onload += '</tbody></table></div>' ;
+  
+$( onload ).appendTo( "#here" ).enhanceWithin();
+
+//window.location.href= "#draftshowpage" ;
+$.mobile.changePage("#draftshowpage",{transition:"pop"});
+}
+
+//Function to delete the selected list of drafts
+function deleteorder(){
+
+ // Retrieve user details and drafts list from local storage
+var num = localStorage.getItem('phonenumber');
+var all_drafts = JSON.parse(localStorage.getItem('drafts'+num));	
+
+
+//get list of selected drafts from local storage
+var draftids = JSON.parse(localStorage.getItem('draftids'));
+
+var itr = 0 ; // a variable used to buffer deleted item ids by decreasing each time an item is deleted
+for( var x= 0 ; x < draftids.id.length ; x++){
+        
+      var i = draftids.id[x] - itr;
+	  all_drafts.mydrafts.splice(i,1);
+	  itr++;
+}
+
+var json = JSON.stringify(all_drafts);
+
+//set the draft list for user in local storage
+localStorage.setItem('drafts'+num,json);
+//reload page
+window.location.href= "draftorderpage.html";
+}
+
+
+function order(){
+
+// Retrieve user details and drafts list from local storage
+var num = localStorage.getItem('phonenumber');
+var all_drafts = JSON.parse(localStorage.getItem('drafts'+num));	
+
+//get list of selected drafts from local storage list
+var draftids = JSON.parse(localStorage.getItem('draftids'));
+
+$('#confirm_here').empty();  // empty the contents of page where new draft is to be displayed
+
+var onload = '<div><table data-role="table" data-mode="columntoggle" class="ui-responsive ui-shadow" id="myTable">'+
+ '<tbody>'+
+ '<tr>' +
+ '<th>Item No.</th>' +
+  '<th>Grocery Item</th>' +
+  '<th>Quantity<br>(kg\\doz\\ltr)</th>' +
+  '<th> Cost(&#8377)</th>' +
+ '</tr>' ;
+ var totalcost = 0;
+ var count=1; // variable to list the order items in a uniform increasing order
+
+
+for( var x= 0 ; x < draftids.id.length ; x++){
+  
+   var i = draftids.id[x] ;
+
+  for(var j =0 ; all_drafts.mydrafts[i].orderItems[j] ; j++){
+   onload += '<tr>' +
+  '<td>'+(count++)+'.</td>' +
+  '<td>' +all_drafts.mydrafts[i].orderItems[j].name+ '</td>' +
+  '<td> '+all_drafts.mydrafts[i].orderItems[j].quantity+ '</td>' +
+  '<td>' +all_drafts.mydrafts[i].orderItems[j].cost+'</td>' +
+ '</tr>' ;
+ totalcost += new Number(all_drafts.mydrafts[i].orderItems[j].cost);
+  }
+  
+ }
+ 
+  onload += '<br><tr><td><b>Total:</b><td></td><td></td><td>'+totalcost+'&#8377</td></tr>';
+  onload += '</tbody></table></div>' ;
+  
+$( onload ).appendTo('#confirm_here').enhanceWithin();
+
+//go to confirm order page
+
+//window.location.href= "#confirmorderpage" ;
+ 
+  }
+</script>
+</div>
+
+<div data-role="page" data-position-to="window" id="draftshowpage">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Drafts</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+<div id="here">
+</div>
+</div>
+
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>
+   <a href="" data-rel="back"  class="ui-btn ui-btn-b ui-shadow ui-inline " >Close</a>
+   </h1>
+</div>
+</div>
+
+<div data-role="page" data-position-to="window" id="confirmorderpage">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Confirm your Order</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+<div id="confirm_here">
+</div>
+</div>
+
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>
+   <a href="#checkoutpage" onclick="confirmorder()" class="ui-btn ui-btn-b ui-shadow ui-inline " >Confirm</a>
+   </h1>
+</div>
+<script>
+//Function to confirm the submission of orders 
+function confirmorder(){
+
+// Retrieve user details from local storage
+var result = JSON.parse(localStorage.getItem('user_details')) ;
+var currentorgid = localStorage.getItem('orgid');
+
+
+var json_obj = {};
+json_obj['groupname'] = 'Parent Group';
+json_obj['orgabbr'] =  result.organizations[currentorgid].abbr ; 
+json_obj['orderItems'] = new Array;
+
+
+ // Retrieve user phone number and drafts list from local storage
+var num = localStorage.getItem('phonenumber');
+var all_drafts = JSON.parse(localStorage.getItem('drafts'+num));	
+
+//get the list of selected draft orders
+var draftids = JSON.parse(localStorage.getItem('draftids'));
+
+for( var x= 0 ; x < draftids.id.length ; x++){
+  var i = draftids.id[x] ;
+	for(var j =0 ; all_drafts.mydrafts[i].orderItems[j] ; j++){
+		var obj = {};
+		obj['quantity']= all_drafts.mydrafts[i].orderItems[j].quantity ;
+		obj['name'] = all_drafts.mydrafts[i].orderItems[j].name ;
+		json_obj['orderItems'].push(obj);
+	}
+
+}
+ 
+var data = JSON.stringify(json_obj);               // data to be posted
+
+var user_email = result.email;
+var user_password = localStorage.getItem('userpassword');
+var serverurl = 'http://ruralict.cse.iitb.ac.in/RuralIvrs/api/orders/add' ;
+ 
+ var details = user_email + ":" + user_password;
+ var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+ var auth = Base64.encode(details);
+ 
+ var xhr = new XMLHttpRequest();                  // request server side for adding the submitted order
+ //xhr.withCredentials = true;
+ 
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+
+    var response = JSON.parse(this.responseText);
+	
+	//in case successfully added order
+	if(response.Status == 'Success' ){
+	return true;
+	// window.location.href= "#checkoutpage" ;
+	}
+	else{
+	alert("Error in submitting..Try again later!");
+	return false;
+	}
+	}
+}
+
+xhr.open("POST",serverurl,false);
+xhr.setRequestHeader("Authorization", "Basic "+auth);                  // basic authentication for request header
+xhr.send(data);                                                          // post data to server
+ 
+  }
+</script>
+</div>
+
+<div data-role="page" data-position-to="window" id="checkoutpage">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Submit Order</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+<br><br><br><br>
+<p><img src="images/cart.png" style="width:120px;height:120px;"></img></p>
+<br>
+<h1 id="h11" >Order Placed!</h1>
+<p>Thank you for choosing Cart </p>
+<p>  <input type="button" data-theme ="b" data-inline="true" id= "done" onclick="window.location.href='homepage.html'" value="Done" />  </p>
+</div>
+
+</div>
+<script type="text/javascript" src="phonegap.js"></script>
+</body>
+</html>

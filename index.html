@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript">
+
+$(document).ready(function(){
+document.addEventListener('deviceready', onDeviceReady, false);
+});
+
+function onDeviceReady(){
+
+//Go to homepage if logged in already
+if(localStorage.getItem('useremail')){
+window.location.href= "homepage.html";
+}
+ //for windows phone
+if (device.platform == "windows") {
+    WinJS.Application.onbackclick = function () {
+        onBackKeyDown();
+        return true; 
+    }
+}
+//for android
+else {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+     }
+}
+
+// back button function
+function onBackKeyDown(){
+   var page = $(':mobile-pagecontainer').pagecontainer('getActivePage')[0].id;	
+	if(page=='login'){
+        navigator.app.exitApp();
+    }
+  
+return true;
+}
+
+
+</script>
+<style>
+p{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+body .ui-li .ui-li-desc {
+ white-space: normal;
+ }
+ body .ui-header .ui-title {
+ white-space: normal;
+ }
+ body .ui-btn-text {
+white-space: normal;
+}
+body .ui-footer .ui-title {
+ white-space: normal;
+ }
+#myPopup-popup {
+    width: 60%;
+	height: 60%;
+    left: 10%;
+    right: 10%
+}
+#myPopup2-popup {
+    width: 60%;
+	height: 60%;
+    left: 10%;
+    right: 10%
+}
+</style>
+</head>
+<body>
+
+<div data-role="page" id="login">
+
+<div data-role="header" data-position="fixed"  data-theme= "b" >
+<img src="images/cart.png" style="width:20px;height:20px;"> Cart </img>
+</div>
+
+<br>
+<div data-role="main" class="ui-content">
+<p><img src="images/cart.png" style="width:140px;height:140px;"></img></p>
+<br>
+
+      <label for = "mobile"></label>
+      <input type="number" name="mobile" id="mobile" placeholder="Enter Mobile Number..." data-clear-btn="true">
+
+	  <label for="password"></label>
+      <input type="password" name="password" id="password" placeholder="Enter Password..." >
+	
+           <p><input type="button" data-inline="true" data-transition="fade" class="ui-btn-b ui-shadow" data-theme="b" id="signin" value="Sign In"  ></p>
+
+	  <p><a href="#myPopup2" id="homepage" data-rel="dialog" data-transition="pop"> Can't access your account? </a></p>
+      
+	  
+</div>
+
+<div data-role="footer" data-position="fixed"  data-theme="b">
+  <h1>Not a registered member?&nbsp&nbsp<a href="#myPopup" data-rel="dialog" data-transition="pop" data-role="button" class="ui-btn-b ui-shadow" >Sign Up</a></h1>
+</div>
+
+<script>
+// Function to Sign - In to the application
+ $("#signin").on("click", function(){
+   
+   var signin_mobile = $('#mobile').val();   // get mobile field value
+   var signin_pass = $('#password').val();   // get password field value
+  
+  //validate that the fields are not empty
+   if(signin_mobile==='' || signin_pass===''){
+   alert("Enter mobile number and password!");
+   return false;
+   }
+   
+   //validate length of mobile number field
+    var mobile2str = signin_mobile.toString();
+
+if(mobile2str.length===10){
+
+	signin_mobile = "91"+ signin_mobile;
+	
+	var signin_jsonobj = JSON.stringify({'phonenumber':signin_mobile,'password':signin_pass});    // json to be sent
+
+var xhr = new XMLHttpRequest();													    // requesting server-side for login validation
+//xhr.withCredentials = true;
+
+xhr.open("POST", "http://ruralict.cse.iitb.ac.in/RuralIvrs/app/login");																
+ 
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+  
+    signin_result = JSON.parse(this.responseText);  // response from server-side
+	
+	//validate if request was successful
+	if(signin_result.Authentication==='success'){
+	if(signin_result.Error){
+	alert(signin_result.Error);
+	return false;
+	}
+	else{
+	alert("Welcome!");                                                                            // go to homepage and store respective values in localstorage
+	localStorage.setItem('user_details',JSON.stringify(signin_result));
+	localStorage.setItem('orgid',0);
+	localStorage.setItem('useremail',(JSON.stringify(signin_result)).email);
+	localStorage.setItem('userpassword',signin_pass);
+	localStorage.setItem('phonenumber',signin_mobile);
+	
+	// make a new local storage for Drafts each time new user logs in
+if(!localStorage.getItem('drafts'+signin_mobile)){
+var total_drafts  = {};
+total_drafts['phonenumber']= signin_mobile;
+total_drafts['mydrafts'] = new Array();
+var store = JSON.stringify(total_drafts);
+localStorage.setItem('drafts'+signin_mobile,store);
+} 
+
+	window.location.href="homepage.html";
+	}
+	}
+	else if(signin_result.Authentication==='failure'){
+	if(signin_result.registered==='false'){
+	alert("Your number is not registered!");
+	return false;
+	}
+	if(signin_result.registered==='true'){
+	alert("Please check your password!");
+    return false;	
+	}
+	}
+ }
+}
+
+xhr.send(signin_jsonobj);    //send data onto server
+
+}
+
+  else{
+  alert("Invalid mobile number!");
+  return false;
+  }
+  
+  });
+</script> 
+</div>
+
+<div data-role="page" data-position-to="window" id="myPopup">
+
+<div data-role="main" class="ui-content">
+      
+	    <label for="mobilenumber"></label>
+        <input type="number" name="mobilenumber" id="mobilenumber" placeholder="Enter Mobile number..." data-clear-btn="true" />
+		
+		<label for="email"></label>
+        <input type="email" name="email" id="email" placeholder="Enter Email ID..." data-clear-btn="true" />
+		
+		
+		<div id="otp1">
+		<label for="otp" ></label> 
+		<input type="text" name="otp" id="otp" placeholder="Enter OTP..." data-clear-btn="true"/>
+	   </div>
+	    <p><input type="button" data-theme ="b" data-inline="true" id= "getotp" onclick="getOTP();" value="Send" />
+		<a href="#"  data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-btn-inline ">Cancel</a>
+	   </p>
+	   
+</div>
+<script>
+// Sign Up functionalities
+if( $('#otp1').val()=='' )
+      $('#otp1').hide();    // hides otp block before number is input
+
+
+var otp_global ;
+var result;
+
+
+// Function to send entered mobile number to server and retrieve back OTP generated
+function getOTP(){
+var num = $('#mobilenumber').val();
+var emailid = $('#email').val();
+var checkotp = $('#otp').val();
+ 
+var mobile2str = num.toString();
+if(mobile2str.length===10){ 
+// Enters conditional block if user enters only mobile number and clicks 'Send' the first time
+if(num !==''&& emailid!=='' && checkotp===''){
+$('#otp1').show();                                                                   // show otp block for entering otp  
+
+localStorage.setItem('phonenumber',num);					  // store phone number in Window Local Storage
+
+num = "91"+num; 																	// append '91' to mobile number
+         																    
+var data = JSON.stringify({phonenumber:num , email:emailid});  										// convert to JSON format
+
+var xhr = new XMLHttpRequest();													    // requesting server-side for one-time-password generation
+//xhr.withCredentials = true;
+
+xhr.open("POST", "http://ruralict.cse.iitb.ac.in/RuralIvrs/app/otp");
+
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+    //console.log(this.responseText);
+	result = JSON.parse(this.responseText);
+	   // alert("otp:"+result.otp);
+
+	// enters conditional block if user not yet registered and has non-null otp
+	if(result.otp !== 'null'){
+	alert(result.text);
+	otp_global=result.otp;	                                      // store otp from server into global variable for checking with user enterd value later
+	localStorage.setItem('organizations',JSON.stringify(result));           // store the data in Window Local Storage in form of JSON
+    }
+	// enters conditional block if otp is null (registered user)
+    else{
+	alert("User is already registered");
+	window.location.href="index.html";                                             // revert back to index page
+	}	
+ }
+}
+
+xhr.send(data);																	    // post data to server
+
+} // end of if
+
+// Enters conditional block if user enters only otp and clicks 'Send' the second time
+if(num!=='' && emailid!=='' && checkotp!==''){
+    // go to sign up form page if otp same as the one recieved from server-side
+	if(checkotp === otp_global){
+	window.location.href = "signup.html";
+	//$('#otp1').empty();
+	}
+	else 
+	alert("Wrong OTP..Try again!");
+}
+
+}
+else{
+alert("Invalid mobile number");
+return false;
+}
+}
+</script>
+</div> 
+
+<div data-role="page" data-position-to="window" id="myPopup2">
+
+<div data-role="main" class="ui-content">
+      
+	    <label for="mobilenumber2"></label>
+        <input type="number" name="mobilenumber2" id="mobilenumber2" placeholder="Enter Mobile number..." data-clear-btn="true" />
+		<div id="otpdiv2">
+		<label for="otp2" ></label> 
+		<input type="text" name="otp2" id="otp2" placeholder="Enter OTP..." data-clear-btn="true"/>
+	    </div>
+		<div id="pass2">
+	    <label for="newpassword" ></label> 
+		<input type="password" name="newpassword" id="newpassword" placeholder="Enter Password..."/>
+		</div>
+		<div id="confirmpass2">
+		<label for="confirmpassword" ></label> 
+		<input type="password" name="confirmpassword" id="confirmpassword" placeholder="Confirm Password..."/>
+		</div>
+		
+	    <p><input type="button" data-theme ="b" data-inline="true" id= "getotpagain" onclick="getOTPagain();" value="Send" />
+		<a href="#"  data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-btn-inline ">Cancel</a>
+	   </p>
+	   
+</div>
+<script>
+// Forgot password functionalities 
+if($('#otpdiv2').val()=='')
+$('#otpdiv2').hide();    // hides otp2 block
+
+$('#pass2').hide();    // hides newpassword block
+$('#confirmpass2').hide();    // hides confirmpassword block
+
+var otp_global ;
+var result;
+// Function to send entered mobile number to server and retrieve back OTP generated
+function getOTPagain(){
+
+var num = $('#mobilenumber2').val();
+var checkotp = $('#otp2').val();
+var password2 = $('#newpassword').val();
+var confirmpassword2 = $('#confirmpassword').val(); 
+
+
+var mobile2str = num.toString();
+
+if(mobile2str.length===10){
+// Enters conditional block if user enters only mobile number and clicks 'Send' the first time
+if(num !==''&& checkotp===''){
+
+$('#otpdiv2').show();                                                                   // show otp2 block for entering otp2  
+
+localStorage.setItem('phonenumber',num);					  // store phone number in Window Local Storage
+	
+num = "91"+num;
+	
+var data = JSON.stringify({phonenumber:num});  										// convert to JSON format
+
+var xhr = new XMLHttpRequest();													    // requesting server-side for one-time-password generation
+//xhr.withCredentials = true;
+
+xhr.open("POST", "http://ruralict.cse.iitb.ac.in/RuralIvrs/app/forgotpassword");
+
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+   
+    //alert(this.responseText);
+	result = JSON.parse(this.responseText);
+	
+	if(result.otp==='null'){
+	alert("Your mobile number is not registered");
+	window.location.href="index.html";
+	return false;
+	}
+	
+	else{
+	otp_global = result.otp;
+	alert(result.text);
+	}
+ }
+}
+
+xhr.send(data);																	    // post data to server
+ 
+ 
+} // end of if
+
+// Enters conditional block if user enters only otp and clicks 'Send' the second time
+if(num!=='' && checkotp!==''){
+
+if(checkotp === otp_global){
+	$('#pass2').show();                                                                   // show newpassword block for entering newpassword  
+    $('#confirmpass2').show();                                                                   // show confirmpassword block for entering confirmpassword  
+ 
+ if( password2!=='' && confirmpassword2!==''){
+ 
+	if(password2===confirmpassword2){
+	
+num = "91"+num; 																	// append '91' to mobile number
+	var data_2 = JSON.stringify({phonenumber:num,password:password2});
+
+var xhr = new XMLHttpRequest();													    // requesting server-side for one-time-password generation
+//xhr.withCredentials = true;
+
+xhr.open("POST", "http://ruralict.cse.iitb.ac.in/RuralIvrs/app/changepassword");
+
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+    
+    var result_2 = JSON.parse(this.responseText);
+	if(result_2.Status==='Success'){
+	$('#otpdiv2').empty();
+	alert("Password successfully changed!");
+	window.location.href = "index.html";
+	}
+	else{
+	alert(result_2.Error);
+	return false;
+	}
+	
+ }
+}
+
+xhr.send(data_2);																	    // post data to server
+ 
+	}
+	else{
+	alert("Passwords do not match!");
+	return false;
+	}
+	}
+   else{
+  alert("Enter new password");
+  return false;
+  }
+   }
+	
+	else {
+	alert("Wrong OTP..Try again!");
+	return false;
+	}
+ 
+}
+}
+else{
+alert("Invalid mobile number");
+return false;
+}
+}
+</script>
+</div>
+<script type="text/javascript" src="phonegap.js"></script>  
+</body>
+
+</html>

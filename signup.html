@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<script>
+$(document).ready(function(){
+document.addEventListener('deviceready', onDeviceReady, false);
+});
+
+function onDeviceReady(){
+/*   
+var orgvalues = localStorage.getItem('organizations');					//retrieve local storage items like organisation names
+var resultorg = JSON.parse(orgvalues);                          // parse JSON object
+
+// appending html elements to the pop-up form element with id - 'organisations' 
+var i; 																									
+var append='<fieldset data-role="controlgroup">'+
+        '<legend>Select Organisation(s):</legend>';
+
+// loop till organization elements exist
+for(i=0; resultorg.organizations[i]; i++){
+append+= '<label for="'+resultorg.organizations[i].org_id+'">'+resultorg.organizations[i].name+'</label>';
+append+= '<input type="checkbox" name="org" id="'+resultorg.organizations[i].org_id+'" value="'+resultorg.organizations[i].name+'">';
+}
+
+append+= '</fieldset>'; 
+$(append).appendTo( "#here" ).enhanceWithin();
+
+*/
+
+
+//for windows
+   if (device.platform == "windows") {
+    WinJS.Application.onbackclick = function () {
+        onBackKeyDown();
+        return true;
+    }
+}
+//for android
+else {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+}
+}
+//back button function
+function onBackKeyDown(){
+history.go(-1);  
+return true;
+}
+
+// Function to validate form for: Name, Email, Password matching and Address fields.
+function validate(){
+
+    var nameVal = $('#name').val();
+	var emailVal= $('#email').val();
+    var pass = $('#pass1').val();
+	var confirm_pass = $('#pass2').val();
+	var add = $('#address').val();
+	
+	 // validation for non-empty fields
+    if(nameVal=="" || pass=="" || confirm_pass=="" || emailVal=="" || add=="" ){ 
+		 alert('No empty fields allowed! ');
+         return false;
+	}
+	
+	//validation for selecting atleast one organization
+	/*var inputs = document.getElementsByTagName('input');
+    var is_checked = false;
+    for(var x = 0; x < inputs.length; x++) {
+    if(inputs[x].type == 'checkbox' && inputs[x].name == 'org') {
+        is_checked = inputs[x].checked;
+        if(is_checked) break;
+    }
+    }
+	
+	if(!is_checked){
+	alert('Select at least one organization');
+	return false;
+	} */
+	
+    var nameReg =  new RegExp(/^\s*[a-zA-Z,\s]+\s*$/);			// regular expression for checking if text contains only alphabets and no numerals
+    var emailReg = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;   // regular expression for checking email id
+ 
+
+	//validation for name checking
+    if(!nameReg.test(nameVal)) 
+    {  
+        alert('Name should have alphabets only!');
+        return false;
+    }
+    //validation for email checking
+    if(!emailReg.test(emailVal)) 
+    {  
+        alert('Invalid Email ID!');
+        return false;
+    }
+   //validation for password checking
+    if(pass != confirm_pass){
+	alert("Passwords do not match!");
+	return false;
+	}
+	
+
+// proceed in case none of the above validations are violated
+		
+    var num = localStorage.getItem('phonenumber');				// mobile number of user
+	
+	var json_obj = {};
+	json_obj['phonenumber']= num;
+	json_obj['address']= add;
+	json_obj['password']= pass;
+	json_obj['email']= emailVal;
+	json_obj['name']= nameVal;
+	
+	//json_obj['orglist']= new Array();
+	
+	/*var orgs = new Array();								// array to store selected organisations in sign up form
+	$("input:checkbox[name=org]:checked").each(function(){
+	orgs.push($(this).attr("id"));
+    });
+	
+	
+	
+	var i=0;
+	while(orgs[i]){
+	var json_orglist = {};
+	json_orglist['org_id']=orgs[i];
+	json_obj['orglist'].push(json_orglist);
+	i++;
+	}
+	*/
+	
+	var jobj = JSON.stringify(json_obj);  //JSON to be sent to register	
+
+var xhr = new XMLHttpRequest();													    // requesting server-side for registering new user
+//xhr.withCredentials = true;
+
+xhr.open("POST", "http://ruralict.cse.iitb.ac.in/RuralIvrs/app/register");
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+
+	var responseresult = JSON.parse(this.responseText);
+	
+	if(responseresult.Status==='Success'){
+	alert("Successfully registered!");
+	}
+	
+	else if (responseresult.Status==='Failure'){
+    alert(responseresult.Error);
+	}
+	
+	else{
+    alert(responseresult.error);
+	}
+	//go back to Index page after successful/failed registration
+    window.location.href="index.html";
+}
+}
+xhr.send(jobj);																	    // post data to server
+}
+
+// Function to reset Form elements
+function refresh(){
+window.location.href= "signup.html";
+}
+</script>
+<style>
+body .ui-li .ui-li-desc {
+ white-space: normal;
+ }
+ body .ui-header .ui-title {
+ white-space: normal;
+ }
+ body .ui-btn-text {
+white-space: normal;
+}
+body .ui-footer .ui-title {
+ white-space: normal;
+ } 
+</style>
+</head>
+<body>
+
+<div data-role="page" id="signup">
+ 
+<div data-role="header" data-position="fixed" data-theme= "b" >
+<img src="images/cart.png" style="width:20px;height:20px;"> Cart </img>
+ <h3>Sign-Up Form</h3>
+</div>
+  
+<div data-role="main" class="ui-content">
+ 
+		<label for="name"></label>
+        <input type="text" name="name" id="name" placeholder="Name">
+      
+        <label for="email"></label>
+        <input type="email" name="email" id="email" placeholder="E-mail">
+	  
+	    <label for="pass1"></label>
+        <input type="password" name="pass1" id="pass1" placeholder="Enter Password...">
+	
+    	<label for="pass2"></label>
+        <input type="password" name="pass2" id="pass2" placeholder="Confirm Password...">
+	
+        <!--<a href="#organisations" data-rel="popup" class="ui-btn ui-btn-inline">Click to select organisation(s)</a>
+
+		
+    <div data-role="popup" id="organisations" class="ui-content">
+     <div id ="here"> 
+    </div>
+	</div>  -->
+ 
+    <textarea name="address" id="address" rows="20" placeholder="Address.."></textarea>
+	  
+            <input type="hidden"  name="signupform" value="Submit">          
+            <input type="button" data-inline="true" name="signupform" id="signupform" value="Submit" onclick="validate();">
+            <input type="button" data-inline="true" name="resetform" value="Reset" onclick="refresh();">
+
+</div>
+
+<br><br><br><br><br>		
+	
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>IIT-B</h1>
+</div>
+  
+</div>
+<script type="text/javascript" src="phonegap.js"></script>
+</body>
+</html>

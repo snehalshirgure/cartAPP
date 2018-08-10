@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<script>
+$(document).ready(function(){
+
+
+if(localStorage.getItem('org-count')==0){
+alert("No organisation selected");
+window.location.href="homepage.html";
+}
+
+document.addEventListener('deviceready', onDeviceReady, false);
+});
+
+function onDeviceReady(){
+
+//Retrieve required user information from local storage   
+var result = JSON.parse(localStorage.getItem('user_details'));
+var currentorgid = localStorage.getItem('orgid');
+var num = localStorage.getItem('phonenumber');
+
+var url =  'http://ruralict.cse.iitb.ac.in/RuralIvrs/api/orders/search/getOrdersForMember?format=binary&status=saved&abbr='+result.organizations[currentorgid].abbr+'&phonenumber='+num+'&projection=default' ;
+
+var user_email = result.email;
+var user_password = localStorage.getItem('userpassword');
+
+ //Basic authentication for user email and password for XMLHttpRequest header
+ var str = user_email + ":" + user_password;
+ var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+ var auth = Base64.encode(str);
+ 
+var xhr = new XMLHttpRequest();
+//xhr.withCredentials = true;
+
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+  //do validation
+var response = JSON.parse(this.responseText);
+
+//store the list of placed orders in local storage 
+localStorage.setItem('placed_orders',this.responseText);  
+
+var content='<div><table data-role="table" data-mode="columntoggle" class="ui-responsive" id="draftTable">'+
+ '<tbody>'+
+ '<tr>' +
+ '<th></th>' +
+  '<th>Order ID</th>' +
+  '<th>Date</th>' +
+ '</tr>' ;
+
+  if(response._embedded.orders.length == 0 )
+  {
+  alert("No previous orders to display!");
+  window.location.href= "homepage.html";
+  }
+  
+ for(var x=0 ; response._embedded.orders[x] ; x++){
+  var regtime = response._embedded.orders[x].registeredTime;
+  var date = regtime.split('T');
+  
+ content+='<tr>' ;
+ content+= '<td><img src="images/delete.png" onclick="deleteorders('+response._embedded.orders[x].orderId+')" id="del'+x+'" style="width:30px;height:35px;"></img></td>' ;
+ content+= '<td><div onclick="show_draft('+x+')" ><label>'+response._embedded.orders[x].orderId+'</label></div></td>';
+ content+= '<td><div onclick="show_draft('+x+')"><label>'+date[0]+'</label></div></td>';
+ content+= '</tr>';
+  }
+ 
+  content += '</tbody></table></div>' ;
+  
+ $("#selectid").controlgroup("container").append(content);
+  $("[data-role=controlgroup]").enhanceWithin().controlgroup("refresh");
+	}
+	
+}
+
+xhr.open("GET",url,false);
+xhr.setRequestHeader("Authorization", "Basic "+auth);
+xhr.send();
+
+//for windows
+if (device.platform == "windows") {
+    WinJS.Application.onbackclick = function () {
+        onBackKeyDown();
+        return true; // This line is important, without it the app closes.
+    }
+}
+//for android
+else {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+}
+
+}
+//back button function 
+function onBackKeyDown(){
+history.go(-1);  
+return true;
+}
+</script>
+<style>
+th {
+    border-bottom: 1px solid #d6d6d6;
+}
+tr {
+    border-bottom: 1px solid #d6d6d6;
+}
+p{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+
+#h11{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+
+.ui-table-columntoggle-btn {
+    display: none !important;
+}
+body .ui-li .ui-li-desc {
+ white-space: normal;
+ }
+ body .ui-header .ui-title {
+ white-space: normal;
+ }
+ body .ui-btn-text {
+white-space: normal;
+}
+body .ui-footer .ui-title {
+ white-space: normal;
+ }
+</style>
+</head>
+<body>
+
+<div data-role="page" id= "cancelorderpage">
+<div data-role="header" data-position="fixed" data-theme="b">
+    <h1>Cancel Order Items</h1>
+</div>
+	
+<div data-role="main" class="ui-content">
+		
+	<div data-role="content">
+    <div data-role="controlgroup" id="selectid">
+    
+    </div>
+</div>
+</div>
+  
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>IIT-B</h1>
+</div>
+<script>
+ 
+//Function to delete the given order in the list 
+function deleteorders(id){
+  
+  var json = {};
+  json['status'] = 'cancelled';
+  var data = JSON.stringify(json);
+  
+ //Retrieve required user information from local storage  
+var result = JSON.parse(localStorage.getItem('user_details'));
+var url = 'http://ruralict.cse.iitb.ac.in/RuralIvrs/api/orders/update/'+id;
+var user_email = result.email;
+var user_password = localStorage.getItem('userpassword');
+var details = user_email + ":" + user_password;
+ 
+ 
+ //Basic authorization for XMLHttpRequest header
+ var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+ var auth = Base64.encode(details);
+  
+var xhr = new XMLHttpRequest();
+//xhr.withCredentials = true;
+
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+   // alert(this.responseText);
+   
+	var response2 = JSON.parse(this.responseText);
+	
+	//in case successfully order cancelled
+	if(response2.Status=='Success'){
+	window.location.href="cancelorderpage.html";
+	}
+	else{
+	alert("Server error..try later.");
+	return false;
+	}
+  
+  }
+  
+}
+
+xhr.open("POST",url,false);
+xhr.setRequestHeader("Authorization", "Basic "+auth);
+xhr.send(data);
+
+  }
+  
+// Function to show selected order to be cancelled
+ function show_draft(id){
+ 
+ // get the list of placed orders from local storage
+ var response= JSON.parse(localStorage.getItem('placed_orders'));
+ $('#here').empty();
+
+var onload = '<div><table data-role="table" data-mode="columntoggle" class="ui-responsive ui-shadow" id="myTable">'+
+ '<tbody>'+
+ '<tr>' +
+ '<th>Item No.</th>' +
+  '<th>Grocery Item</th>' +
+  '<th>Quantity<br>(kg\\doz\\ltr)</th>' +
+  '<th> Cost(&#8377)</th>' +
+ '</tr>' ;
+ var totalcost = 0;
+
+  for( var x=0; response._embedded.orders[id].orderItems[x] ; x++ ){
+  
+  var rate = response._embedded.orders[id].orderItems[x].unitrate ;
+  var quant = response._embedded.orders[id].orderItems[x].quantity;
+  
+  onload += '<tr>' +
+  '<td>'+(x+1)+'.</td>' +
+  '<td>' +response._embedded.orders[id].orderItems[x].productname+ '</td>' +
+  '<td> '+quant+ '</td>' +
+  '<td>' +multiply(quant,rate)+'</td>' +
+ '</tr>' ;
+  totalcost += multiply(quant,rate);
+  }
+ 
+  onload += '<br><tr><td><b>Total:</b><td></td><td></td><td>'+totalcost+'&#8377</td></tr>';
+  onload += '</tbody></table></div>' ;
+  
+$( onload ).appendTo( "#here" ).enhanceWithin();
+
+//window.location.href= "#showpage" ;
+$.mobile.changePage("#showpage",{transition:"pop"});
+ }
+ //multiply function
+  function multiply(a,b){
+  return a*b;
+  }
+  </script>
+</div>
+
+<div data-role="page" data-position-to="window" id="showpage">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Placed Orders</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+
+<div id="here">
+
+</div>
+</div>
+<div data-role="footer" data-position="fixed" data-theme="b">
+   <h1>
+   <a href="" data-rel="back"  class="ui-btn ui-btn-b ui-shadow ui-inline " >Close</a>
+   </h1>
+</div>
+</div>
+<script type="text/javascript" src="phonegap.js"></script>
+</body>
+</html>

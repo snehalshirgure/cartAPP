@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<script>
+$(document).ready(function(){
+
+
+if(localStorage.getItem('org-count')==0){
+alert("No organisation selected");
+window.location.href="homepage.html";
+}
+
+document.addEventListener('deviceready', onDeviceReady, false);
+});
+
+function onDeviceReady(){
+   
+
+//Retrieve required user information from local storage    
+var result = JSON.parse(localStorage.getItem('user_details'));
+var currentorgid = localStorage.getItem('orgid');
+var num = localStorage.getItem('phonenumber');
+
+var url =  'http://ruralict.cse.iitb.ac.in/RuralIvrs/api/orders/search/getOrdersForMember?format=binary&status=processed&abbr='+result.organizations[currentorgid].abbr+'&phonenumber='+num+'&projection=default' ;
+
+var user_email = result.email;
+var user_password = localStorage.getItem('userpassword');
+
+
+ //Basic authentication for user email and password for XMLHttpRequest header
+ var details = user_email + ":" + user_password;
+ var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+ var auth = Base64.encode(details);
+ 
+var xhr = new XMLHttpRequest();
+//xhr.withCredentials = true;
+
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+
+//do validation
+var response = JSON.parse(this.responseText);
+
+//store the list of placed orders in local storage
+localStorage.setItem('placed_orders',this.responseText);  
+
+var content='<div><table data-role="table" data-mode="columntoggle" class="ui-responsive" id="draftTable">'+
+ '<tbody>'+
+ '<tr>' +
+  '<th>Order ID</th>' +
+  '<th>Date</th>' +
+ '</tr>' ;
+ 
+ if(response._embedded.orders.length == 0 )
+  {
+  alert("No previous orders to display!");
+  window.location.href= "homepage.html";
+  }
+  
+ for(var x=0 ; response._embedded.orders[x] ; x++){
+  var regtime = response._embedded.orders[x].registeredTime;
+  var date = regtime.split('T');                                
+  
+ content+='<tr>' ;
+ content+= '<td><div onclick="show_draft('+x+')" ><label>'+response._embedded.orders[x].orderId+'</label></div></td>';
+ content+= '<td><div onclick="show_draft('+x+')"><label>'+date[0]+'</label></div></td>';
+ content+= '</tr>';
+  
+  }
+  content += '</tbody></table></div>' ;
+  
+ $("#selectid").controlgroup("container").append(content);
+ $("[data-role=controlgroup]").enhanceWithin().controlgroup("refresh");
+  }
+}
+
+xhr.open("GET",url,false);
+xhr.setRequestHeader("Authorization", "Basic "+auth);                                //basic authentication for request header
+xhr.send();                                                                         // get data from server
+
+
+//for windows
+if (device.platform == "windows") {
+    WinJS.Application.onbackclick = function () {
+        onBackKeyDown();
+        return true; // This line is important, without it the app closes.
+    }
+}
+//for android
+else {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+}
+}
+//back button function 
+function onBackKeyDown(){
+history.go(-1);  
+return true;
+}
+</script>
+<style>
+th {
+    border-bottom: 1px solid #d6d6d6;
+}
+tr {
+    border-bottom: 1px solid #d6d6d6;
+}
+p{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+
+#h11{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+
+.ui-table-columntoggle-btn {
+    display: none !important;
+}
+
+
+body .ui-li .ui-li-desc {
+ white-space: normal;
+ }
+ body .ui-header .ui-title {
+ white-space: normal;
+ }
+ body .ui-btn-text {
+white-space: normal;
+}
+body .ui-footer .ui-title {
+ white-space: normal;
+ }
+</style>
+</head>
+<body>
+
+<div data-role="page" id= "previousorderpage">
+<div data-role="header" data-position="fixed" data-theme="b">
+    <h1>Previous Order Items</h1>
+</div>
+	
+ <div data-role="main" class="ui-content">
+		
+	<div data-role="content">
+    <div data-role="controlgroup" id="selectid">
+    
+	</div>
+</div>
+</div>
+  
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>IIT-B</h1>
+</div>
+  
+<script>
+// Function to show drafts of selected placed order
+ function show_draft(id){
+ 
+ //retrieve list of placed orders from local storage
+ var response= JSON.parse(localStorage.getItem('placed_orders'));
+
+ $('#here').empty();  // empty the page to show new selected draft 
+
+var onload = '<div><table data-role="table" data-mode="columntoggle" class="ui-responsive ui-shadow" id="myTable">'+
+ '<tbody>'+
+ '<tr>' +
+ '<th>Item No.</th>' +
+  '<th>Grocery Item</th>' +
+  '<th>Quantity<br>(kg\\doz\\ltr)</th>' +
+  '<th> Cost(&#8377)</th>' +
+ '</tr>' ;
+ var totalcost = 0;
+
+for( var x=0; response._embedded.orders[id].orderItems[x] ; x++ ){
+  
+  var rate = response._embedded.orders[id].orderItems[x].unitrate ;
+  var quant = response._embedded.orders[id].orderItems[x].quantity;
+  
+  onload += '<tr>' +
+  '<td>'+(x+1)+'.</td>' +
+  '<td>' +response._embedded.orders[id].orderItems[x].productname+ '</td>' +
+  '<td> '+quant+ '</td>' +
+  '<td>' +multiply(quant,rate)+'</td>' +
+ '</tr>' ;
+  totalcost += multiply(quant,rate);
+  }
+ 
+  onload += '<br><tr><td><b>Total:</b><td></td><td></td><td>'+totalcost+'&#8377</td></tr>';
+  onload += '</tbody></table></div>' ;
+  
+$( onload ).appendTo( "#here" ).enhanceWithin();
+document.getElementById('mod').innerHTML  = '<h1 id="h11"><a href="" onclick="modify('+id+')" class="ui-btn ui-btn-b ui-shadow ui-inline ui-icon-bars ui-btn-icon-left " >Modify</a><a href="" data-rel="back"  class="ui-btn ui-btn-b ui-shadow ui-inline ui-icon-delete ui-btn-icon-right " >Close</a></h1>'; 
+//window.location.href= "#showpage" ;
+$.mobile.changePage("#showpage",{transition:"pop"});
+
+ }
+
+ //multiply function
+  function multiply(a,b){
+  return a*b;
+  }
+  </script>
+</div>
+
+<div data-role="page" data-position-to="window" id="showpage">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Placed Orders</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+
+<div id="here">
+
+</div>
+</div>
+<div data-role="footer" data-position="fixed" data-theme="b">
+    
+<div id="mod">
+ 
+ </div>
+   
+   
+</div>
+
+<script>
+
+//Function to modify the seleceted previously placed order
+
+function modify(id){
+  
+ //retrieve list of placed orders from local storage
+  var response= JSON.parse(localStorage.getItem('placed_orders'));
+ 
+ $('#here2').empty();   //empty the page to display new selected order list 
+
+ var content ='<div>'+
+   '<table data-role="table" data-mode="columntoggle" class="ui-responsive ui-shadow" id="myTable2">' +
+      '<tbody>' +
+	  '<tr>' +
+  '<th>Grocery Item</th>' +
+  '<th>Quantity<br>(kg\\doz\\ltr)</th>' +
+  '<th> Cost(&#8377)</th>' +
+ '</tr>' ;
+	  
+ for( var x=0; response._embedded.orders[id].orderItems[x] ; x++ ){
+ 
+  content+= '<tr>'+
+          '<td>'+response._embedded.orders[id].orderItems[x].productname+'<br>'+response._embedded.orders[id].orderItems[x].unitrate+'&#8377</td>'+
+          '<td><input type="number" value= "'+response._embedded.orders[id].orderItems[x].quantity+'" step="0.01" name="itemquantity" id="input-'+x+'" onchange="changerate('+x+',this.value,'+response._embedded.orders[id].orderItems[x].unitrate+');" onkeyup="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" /></td>' +
+          '<td><p id="display-'+x+'">'+multiply(response._embedded.orders[id].orderItems[x].quantity,response._embedded.orders[id].orderItems[x].unitrate)+'&#8377</p></td>' +
+        '</tr>';
+		
+  }
+
+   content+= '</tbody></table></div>';
+  
+  $( content ).appendTo( "#here2" ).enhanceWithin();
+  
+    document.getElementById('draftorproceed').innerHTML  = '<h1 id="h11">'+
+   '<a href="#draftPopup" onclick="commonloader(0,'+id+')"   data-transition="fade" class="ui-btn ui-btn-b ui-shadow ui-inline ui-icon-bullets ui-btn-icon-left" >Draft</a>' +
+   '<a href="#proceedPopup" onclick= "commonloader(1,'+id+')"  data-transition="fade" class="ui-btn ui-btn-b ui-shadow ui-inline ui-icon-arrow-r ui-btn-icon-right" >Proceed</a>' + 
+   '</h1>';
+  //window.location.href= "#showpage2" ;
+  $.mobile.changePage("#showpage2",{transition:"pop"});
+
+ }
+ 
+//multiply function
+ function multiply(a,b){ return a*b ; }
+</script>
+</div>
+
+
+
+<div data-role="page" data-position-to="window" id="showpage2">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Placed Orders</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+
+<div id="here2">
+
+</div>
+</div>
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <div id="draftorproceed">  </div> 
+</div>
+<script>
+// Function to dynamically change the rate of selected item according to quantity entered
+
+ function changerate(indexid,change,rate){
+ var id ='display-'+indexid ;
+ var cost = multiply(change,rate);
+ document.getElementById(id).innerHTML =  cost +'&#8377' ; 
+}
+
+// Common function for loading both Draft page and Proceed page for given id using an iterator--- 0 for draft and 1 for proceed page 
+function commonloader(iterator,id){
+  
+    var inputs = document.getElementsByTagName('input');
+	var draft_obj= {};
+    
+	draft_obj['drafts'] = new Array();
+	
+     var flag = 0;                               // to check if entered values are not neg or non-numeric
+   
+	for(var x = 0; x < inputs.length; x++) {
+    if(inputs[x].type == 'number' && inputs[x].name == 'itemquantity') {
+
+	 flag=1;
+ var response= JSON.parse(localStorage.getItem('placed_orders'));
+	 
+ var draft = {};
+ draft['product_name'] = response._embedded.orders[id].orderItems[x].productname;
+ draft['quantity'] = inputs[x].value;
+ draft['cost'] =  multiply(inputs[x].value, response._embedded.orders[id].orderItems[x].unitrate); 
+ draft_obj['drafts'].push(draft);
+	 }	 
+ 
+	}
+	
+	if(flag==1){
+	 var finaldraft = JSON.stringify(draft_obj);
+
+	 //store temp item list in local storage
+	 
+	 localStorage.setItem('grocerylist',finaldraft);
+	$('#draft_here').empty();                     //empty draft page before loading new selected items
+	$('#proceed_here').empty();                  //empty proceed page before loading new selected items
+	
+	 var draftcontent =  '<div><table data-role="table" data-mode="columntoggle" class="ui-responsive ui-shadow" id="myTable3">'+
+ '<tbody>'+
+ '<tr>' +
+ '<th>Item No.</th>' +
+  '<th>Grocery Item</th>' +
+  '<th>Quantity<br>(kg\\doz\\ltr)</th>' +
+  '<th> Cost(&#8377)</th>' +
+ '</tr>' ;
+ var totalcost = 0;
+ var draftitems = JSON.parse(finaldraft); 
+  
+  for( var x=0; draftitems.drafts[x] ; x++ ){
+  draftcontent += '<tr>' +
+  '<td>'+(x+1)+'.</td>' +
+  '<td>' +draftitems.drafts[x].product_name+ '</td>' +
+  '<td> '+draftitems.drafts[x].quantity+ '</td>' +
+  '<td>' +draftitems.drafts[x].cost+'</td>' +
+ '</tr>' ;
+  totalcost += new Number(draftitems.drafts[x].cost);
+  }
+ 
+  draftcontent += '<br><tr><td><b>Total:</b><td></td><td></td><td>'+totalcost+'&#8377</td></tr>';
+  draftcontent += '</tbody></table></div>' ;
+  
+ // in case draft is selected 
+if(!iterator){ 
+ $( draftcontent ).appendTo( "#draft_here" ).enhanceWithin();
+   //window.location.href = "#draftPopup"; 
+   }
+   // in case proceed is selected 
+  else{
+  $( draftcontent ).appendTo( "#proceed_here" ).enhanceWithin();
+   //window.location.href = "#proceedPopup"; 
+  }
+  }
+  
+   // if no items are selected/ no value entered
+   
+    else{
+	alert("Select atleast one item! ");
+	return false;
+	}
+ 
+ }
+// multiply function
+ function multiply(a,b){ return a*b ; }
+ 
+ </script>
+</div>
+
+<div data-role="page" data-position-to="window" id="draftPopup">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Selected Items</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+<div id="draft_here">
+ 
+</div>
+</div>
+
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>
+   <a href="" data-rel="back"  class="ui-btn ui-btn-b ui-shadow ui-inline  ui-icon-back ui-btn-icon-left" >Modify</a>
+   <a href="" onclick="finaldraft();"   class=" ui-btn ui-btn-b ui-shadow ui-inline  ui-icon-check ui-btn-icon-right" >Done</a>
+   </h1>
+</div>
+<script>
+
+// Function to confirm draft the selected grocery items, their quantity and cost
+function finaldraft(){
+
+var checkout_list = JSON.parse(localStorage.getItem('grocerylist'));     //retrieve the temp list from local storage
+
+//Retrieve user details from local storage
+var result = JSON.parse(localStorage.getItem('user_details'));
+var currentorgid = localStorage.getItem('orgid');
+var user_phonenumber = localStorage.getItem('phonenumber');
+
+
+//Use the Draft local storage created for each user after first log in 
+var add_draft = JSON.parse(localStorage.getItem('drafts'+user_phonenumber));
+
+//Get current Date and Time
+var currentdate = new Date(); 
+var date =  currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/" 
+                + currentdate.getFullYear() ;
+
+var hour = currentdate.getHours() ;
+
+var min = currentdate.getMinutes();
+
+var i = "AM";
+if(hour>12){
+i = "PM";
+hour= mod(hour,12);               // convert to 12-hour format 
+}
+
+if(hour<10){
+hour="0"+hour;
+}
+if(min<10){
+min = "0"+min;
+}
+var time = hour+":"+min +" "+i ;
+
+var draft = {};
+
+draft['date'] = date;
+draft['time'] = time;
+draft['orderItems'] = new Array;
+
+for( var x=0; checkout_list.drafts[x] ; x++){
+var obj = {};
+obj['quantity']= checkout_list.drafts[x].quantity ;
+obj['name'] = checkout_list.drafts[x].product_name ;
+obj['cost'] = checkout_list.drafts[x].cost ;
+
+ draft['orderItems'].push(obj);
+}
+
+// Add draft to the list of user drafts
+add_draft['mydrafts'].push(draft);
+
+var save = JSON.stringify(add_draft);
+localStorage.setItem('drafts'+user_phonenumber,save);
+alert("Draft saved!");
+}
+
+//modulus function
+function mod(a,b){ return a%b ;}
+</script>
+</div>
+
+
+<div data-role="page" data-position-to="window" id="proceedPopup">
+
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Selected Items</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+<div id="proceed_here">
+ 
+</div>
+</div>
+
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>
+   <a href="" data-rel="back"  class="ui-btn ui-btn-b ui-shadow ui-inline  ui-icon-back ui-btn-icon-left" >Modify</a>
+   <a href="#checkoutpage"  onclick="checkout();" class="ui-btn ui-btn-b ui-shadow ui-inline  ui-icon-check ui-btn-icon-right" >Check Out</a>
+   </h1>
+</div>
+<script>
+
+
+// Function to confirm to proceed with Placing the order of the list of items in proceed page
+function checkout(){
+var checkout_list = JSON.parse(localStorage.getItem('grocerylist'));    //retrieve the temp list from local storage
+
+//Retrieve user details from local storage
+var result = JSON.parse(localStorage.getItem('user_details')) ;
+var currentorgid = localStorage.getItem('orgid');
+
+var json_obj = {};
+json_obj['groupname'] = 'Parent Group';
+json_obj['orgabbr'] =  result.organizations[currentorgid].abbr ; 
+json_obj['orderItems'] = new Array;
+
+for( var x=0; checkout_list.drafts[x] ; x++){
+var obj = {};
+obj['quantity']= checkout_list.drafts[x].quantity ;
+obj['name'] = checkout_list.drafts[x].product_name ;
+json_obj['orderItems'].push(obj);
+}
+var data = JSON.stringify(json_obj);
+
+ var user_email = result.email;
+ var user_password = localStorage.getItem('userpassword');
+ var serverurl = 'http://ruralict.cse.iitb.ac.in/RuralIvrs/api/orders/add' ;
+ 
+ //Basic Authorization of user email and password for XMLHttpRequest header
+  var str = user_email + ":" + user_password;
+  var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+  var auth = Base64.encode(str);
+    
+ var xhr = new XMLHttpRequest();
+ //xhr.withCredentials = true;
+ 
+xhr.addEventListener("readystatechange", function () {
+  if (this.readyState === this.DONE) {
+    var response = JSON.parse(this.responseText);
+	
+	//if successfully placed order
+	if(response.Status == 'Success' ){
+	 //window.location.href= "#checkoutpage" ;
+	}
+	else{
+	alert("Error in submitting..Try again later");
+	return false;
+	}
+	}
+});
+
+xhr.open("POST",serverurl,false);
+xhr.setRequestHeader("Authorization", "Basic "+auth);                      //basic authentication for request header
+xhr.send(data);                                                            // post data to server
+
+}
+
+</script>
+</div>
+<div data-role="page" data-position-to="window" id="checkoutpage">
+<br><br><br><br>
+<div data-role="header" data-position="fixed" data-theme="b">
+<h3>Submit Order</h3>
+</div>
+
+<div data-role="main" class="ui-content">
+
+<p><img src="images/cart.png" style="width:120px;height:120px;"></img></p>
+<br>
+<h1 id="h11" >Order Placed!</h1>
+<p>Thank you for choosing Cart </p>
+<p>  <input type="button" data-theme ="b" data-inline="true" id= "done" onclick="window.location.href='homepage.html'" value="Done" />  </p>
+</div>
+
+</div>
+<script type="text/javascript" src="phonegap.js"></script>
+</body>
+
+</html>
+

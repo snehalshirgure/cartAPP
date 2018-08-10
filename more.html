@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<script>
+$(document).ready(function(){
+document.addEventListener('deviceready', onDeviceReady, false);
+});
+
+function onDeviceReady(){
+//for winodws
+   if (device.platform == "windows") {
+    WinJS.Application.onbackclick = function () {
+        onBackKeyDown();
+        return true; // This line is important, without it the app closes.
+    }
+}
+//for android
+else {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+}
+}
+//back button function 
+function onBackKeyDown(){
+history.go(-1);  
+return true;
+}
+</script>
+</head>
+</body>
+<div data-role="page" id="morepage">
+ 
+<div data-role="header" data-position="fixed"  data-theme= "b" >
+<h2></strong>Using the Cart app</h2> 
+</div>
+
+<div data-role="main" class="ui-content">
+<h2></strong>Using the Cart app</h2> 
+   
+        <p>This app has been developed to help you get the ingredients for your food at your doorstep. You can order from the local farmer groups of your choice.<br>This document contains information on how to use the app. You can refer to it whenever you need help.</p>
+        <ul>
+        <ul>
+            <li><a href="#SignUp" style="text-decoration:none">Register</a></li>
+            <li><a href="#Login" style="text-decoration:none">Sign In</a></li>
+            <li><a href="#Dashboard" style="text-decoration:none">The Dashboard </a></li>
+            <li><a href="#NewOrder" style="text-decoration:none">Placing an order</a></li>
+            <li><a href="#PrevOrder" style="text-decoration:none">Looking at your previous orders</a></li>
+            <li><a href="#CancelOrder" style="text-decoration:none">Cancelling an order</a></li>
+            <li><a href="#Draft" style="text-decoration:none">Saving your orders in Drafts</a></li>
+        </ul>
+        <p>
+            <a name="SignUp"><b>REGISTER</b></a>This is the main page of the app.<br><img src="images/login.png" style="width:150px;height:250px; ">
+            <br>
+                <ul>
+                    <li>STEP 1: Click the "<b>Sign Up</b>" button.</li>
+                    <li>STEP 2: Enter the details and click "<b>Get OTP</b>" to get the OTP on your e-mail address.<br><img src="images/getOtp.png"style="width:150px;height:250px; " ></li>
+                    <li>STEP 3: Enter the the OTP received via your e-mail.</li>
+                    <li>STEP 4: Click "Confirm" and you will be taken to the Sign Up page.<br><img src="images/signup.png" style="width:150px;height:250px;"></li>
+                    <li>STEP 5: Fill in the form and click "<b>Submit</b>".</li>
+                    <li>STEP 6: You can now log into the app once the <b>Admin approves your request</b>.</li>
+                </ul>
+            <br>
+               
+        </p>
+        <p>
+            <a name="Login"><b>SIGN IN</b></a><br>Enter the number and the password registered with the organisation at the time of becoming a member.
+                <br>Press the "Login" button.
+                    <br>In case you can't access your account, you can change your password by clicking on "<b>Can't access your account?</b>" button and following the steps.
+                        
+        </p>
+        <p>
+            <a name="Dashboard"><b>THE DASHBOARD</b></a><br>This is the home interface of the app.
+                <br><img src="images/dashboard.png"  style="width:150px;height:250px;" >
+				<br>1. To start placing an order you have to click on the "+" sign on the top left corner, which will help you get added to a Organisation's list. 
+				<br>Via checkboxes send in your requests to various organisations. You can send a request only once, hence that organisation will not be displayed in the list subsequently.
+
+				<br>2. The refresh button provided on the top right corner has to be clicked to get updated with the status of the organisation.
+				<br> If the organisation has accepted your request the available produce from that organisation will be displayed.
+                    <br>The Spinner provided helps you choose the NGO through which you want to do the transaction.
+                        <br>Choose the appropriate quantities here before proceeding to order.
+                            <br><br>The title bar contains the "Help" menu button where you can get information regarding us.
+                                <br>It also has the help document which you can refer to when in doubt.
+                                    <br><img src="images/help.png" style="width:150px;height:250px; ">
+                                       
+        </p>
+        <p>
+            <a name="NewOrder"><b>PLACING A NEW ORDER</b></a>
+                <br>
+                    <ul>
+                        <li>STEP 1: Choose the organisation and group from which you want to order. (as mentioned <a href="#Dashboard" style="text-decoration:none">here</a>)</li>
+                        <li>STEP 2: Click on the "<b>New Order</b>" button in the Dashboard.<br>This takes you to the New Order Interface.
+                            <br><img src="images/new.png" style="width:150px;height:250px; "></li>
+                        <li>STEP 3: Click on the classified produce to place an order.<br><img src="images/classifiedProduce.png" style="width:150px;height:250px; "></li>
+                        <li>STEP 4: Enter the quantity of each item that you want to order.</li>
+                        <li>STEP 5: Click on the "<b>Proceed</b>" button.</li>
+                        <li>STEP 6: Here you are shown your full order and the amount to be paid.<br>Click on "<b>Check Out</b>" to order your list of items.
+                            <br><img src="images/confirm.png" style="width:150px;height:250px; "></li>
+                        <li>STEP 7: You will get a confirmation page. Click on "<b>Done</b>"
+                            <br><img src="images/submit.png" style="width:150px;height:250px; " ></li>
+                    </ul>
+                        
+        </p>
+        <p>
+            <a name="CallIvrs"><b>CALLING THE IVRS</b></a>
+                <ul>
+                    <li>The call flow of the system</li><br><img src="images/call1.png" style="width:150px;height:250px; ">
+                    <li>To get the Calling feature, select the organisation and the call button will be displayed.</li>
+                    <li>Click on the <b>Call</b> Button at the bottom of the screen to contact the concerned organisation.<br><img src="images/dashboard.png" style="width:150px;height:250px; "> </li>
+                </ul>
+        </p>
+        <p>
+            <a name="PrevOrder"><b>LOOKING AT THE PREVIOUS ORDERS</b></a>
+                <br>Clicking on the "<b>Previous Orders</b>" button helps you look at the orders that have been processed by the organisation, and have reached <b>or</b> are about to reach you.
+                    <br><img src="images/prev.png" style="width:150px;height:250px; ">
+                        <br>On clicking each of the orders, you get a detailed view of the order.
+                            <br><img src="images/prevview.png" style="width:150px;height:250px; ">
+                                <br>Here you can click on "<b>Modify</b>" button to modify that order and place it, the same way we did before.
+                                    <br>
+                                       
+        </p>
+        <p>
+            <a name="CancelOrder"><b>CANCELLING AN ORDER</b></a>
+                <br>Those orders that have not been processed by the NGO can be cancelled before the organisation processes it.
+                    <br>
+                        <ul>
+                            <li>STEP 1: Find the Order ID of the order you want to cancel.<br><img src="images/cancel.png" style="width:150px;height:250px; "></li>
+                            <li>STEP 2: Clicking on that ID shows the items in the order.<br><img src="images/cancelview.png" style="width:150px;height:250px; "></li>
+                            <li>STEP 3: Click the "<b>Cancel Order</b>" to confirm your action.</li>
+                        </ul>
+                            
+        </p>
+        <p>
+            <a name="Draft"><b>SAVING A DRAFT</b></a><br>You might want to save the items you would like to order later as drafts.
+                <br><b>Saving a draft</b>
+                    <br>
+                        <ul>
+                            <li>STEP 1: Click on the "New Order" button and choose the items and their quantities you want to save.</li>
+                            <li>STEP 2: Click on "<b>Draft</b>" button and a you get the list of items you are saving.<br><img src="images/draft.png" style="width:150px;height:250px; "></li>
+                            <li>STEP 3: Click on "<b>Done</b>" to get your Drafts saved, else click "Modify" to redraft it.</li>
+                        </ul>
+                            <br><b>Ordering or Deleting a draft</b>
+                                <br>
+                                    <ul>
+                                        <li>STEP 1: Click on the "<b>Draft Order</b>" button on the Dashboard. The interface that opens shows your saved drafts.<br><img src="images/draft.png" style="width:150px;height:250px; "></li>
+                                        <li>STEP 2: Choose the orders you want to order/delete by checking the boxes.</li><img src="images/checkdraft.png" style="width:150px;height:250px; "></li>
+                                        <li>STEP 3: Click on "<b>Order</b>" to get your order placed.</li>
+                                            <br> Click on "<b>Delete</b>" to delete the draft orders selected.</li>
+                                        <li> You can also click on the order to view it's details.<br><img src="images/cancelview.png" style="width:150px;height:250px; "></li>
+                                    </ul>
+                                        
+        </p>
+</div>
+ 
+   <div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>IIT-B</h1>
+  </div>
+</div>	 
+
+<script type="text/javascript" src="phonegap.js"></script>           
+</body>
+                    
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<script>
+$(document).ready(function(){
+document.addEventListener('deviceready', onDeviceReady, false);
+});
+
+function onDeviceReady(){
+//for windows phone
+if (device.platform == "windows") {
+    WinJS.Application.onbackclick = function () {
+        onBackKeyDown();
+        return true; 
+    }
+}
+//for android
+else {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+}
+
+//Retrieve required user information from local storage 
+
+ var userdetails = JSON.parse(localStorage.getItem('user_details'));
+ var currentorgid = localStorage.getItem('orgid');
+ var currentpass = localStorage.getItem('userpassword');
+ if(userdetails!==null){
+   
+   var i;
+   var org_count=0;
+   
+   for(i=0; userdetails.organizations[i];i++){
+   if(userdetails.organizations[i].status=='Accepted'){
+      org_count++;  
+  }
+   }    
+   
+   	localStorage.setItem('org-count',org_count);
+	
+  var content =
+    "<div>" +
+      "<div id='orgbar' data-role='collapsible' data-collapsed='true'>" +
+        "<h2>Organizations<span class='ui-li-count' >"+ org_count+ "</span></h2>" +
+        "<ul data-role='listview'>" ;
+          
+	if(org_count==0){
+	content+='<li data-icon="false"><p id="p1">No Organization has accepted your request yet...</p></a></li>';
+	}
+	
+	else{
+   for(i=0; userdetails.organizations[i];i++){
+   if(userdetails.organizations[i].status=='Accepted'){
+   content+='<li data-icon="false"><a href="" data-transition="fade" onclick="changeOrg('+i+')" ><h1>'+userdetails.organizations[i].name+'</h1><p>Contact : '+userdetails.organizations[i].ph_no+'</p></a></li>' ;
+			}	
+		}
+	}   
+   
+     content+=   "</ul>" +
+    "</div>" +
+    "</div>";
+if(org_count==0){
+document.getElementById('addheader').innerHTML= '<h3>Homepage</h3>';
+}
+else{
+ //display current organisation name on header of homepage
+ document.getElementById('addheader').innerHTML= '<h3>'+userdetails.organizations[currentorgid].name+'</h3>';
+ // display calling current selected organisation button on homepage
+ document.getElementById('callbutton').innerHTML = '<a href="tel:+'+userdetails.organizations[currentorgid].ph_no+'" class="ui-btn ui-btn-b ui-shadow ui-corner-all ui-inline " style="padding: 10px 40px ; height: 45px ;border-radius: 200000px;"><p id="p1">Click to Call&nbsp&nbsp&nbsp&nbsp<img src="images/calling.png" style="width:30px;height:30px;" /></p></a>';
+ }
+ 
+ $( content ).appendTo( "#insert_here" ).enhanceWithin();
+ 
+ }
+ }
+ 
+//back button function 
+function onBackKeyDown(){
+
+   var page = $(':mobile-pagecontainer').pagecontainer('getActivePage')[0].id;
+   if(page=='homepage'){
+        navigator.app.exitApp();
+    }
+    else {
+	    history.go(-1);
+    }
+   return true;
+
+}
+</script>
+<style>
+
+#p1{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+#addheader{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+#h31{
+margin:0 auto;
+margin-left:auto;
+margin-right:auto;
+align:center;
+text-align:center;"
+}
+body .ui-li .ui-li-desc {
+ white-space: normal;
+ }
+ body .ui-header .ui-title {
+ white-space: normal;
+ }
+ body .ui-btn-text {
+white-space: normal;
+}
+body .ui-footer .ui-title {
+ white-space: normal;
+ }
+</style>
+</head>
+<body>
+ 
+<div data-role="page" id="homepage">
+
+<div data-role="panel" id="overlayPanel" data-display="overlay" data-theme="b">
+<ul data-role="listview">
+      <li><a href="#aboutus" data-transition="fade" >About Us</a></li>
+      <li> <a href="" onclick="contact();" data-transition="fade">Contact Us</a></li>
+	  <li><a href="#orgpopup"  onclick="addOrg()" data-rel="dialog" data-positon-to="window" data-transition="fade" >Add Organizations</a></li>
+      <li><a href="" onclick = "window.location.href='more.html';" data-transition="fade" >More</a></li>
+	  <li><a href="" onclick="logout();" data-transition="fade">Log Out</a></li>
+	</ul>
+</div>
+
+<div data-role="header" data-position="fixed"  data-theme="b">
+   
+	<a href="#overlayPanel" class="ui-btn ui-shadow ui-corner-all ui-icon-bars ui-btn-icon-left ui-btn-icon-notext ">Back</a>
+	<div id="addheader" ></div>
+	<a href="" onclick="loginAgain();"  class="ui-btn ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-right ui-btn-icon-notext ">Refresh</a>
+</div>
+  
+<div data-role="main" class="ui-content" id="page_content" >
+<div id="insert_here">
+</div>
+	  
+ <div>
+      <ul data-role="listview" data-inset="true">
+      <li>
+        <a href="" data-transition="fade" id= "neworderpage" onclick="window.location.href='neworderpage.html'" ><img src="images/neworder.png"><h1>New Order</h1><p>Place a new order</p></a>
+      </li>
+      <li>
+        <a href="" data-transition="fade" id="previousorderpage" onclick="window.location.href='previousorderpage.html'"><img src="images/previousorder.png"><h1>Previous Order</h1><p>Look at the orders delivered</p></a>
+      </li>
+      <li>
+        <a href="" data-transition="fade" id="cancelorderpage" onclick="window.location.href='cancelorderpage.html'"><img src="images/cancelorder.png"><h1>Cancel Order</h1><p>Cancel unprocessed orders</p></a>
+      </li>
+	  <li>
+        <a href="" data-transition="fade" id="draftorderpage" onclick="window.location.href='draftorderpage.html'"><img src="images/draftorder.png"><h1>Draft Order</h1><p>Order from saved draft</p></a>
+      </li>
+	</ul>
+  </div>
+  <div id="callbutton"></div>
+
+</div>
+
+<script type="text/javascript"> 
+
+  // Function to change id of current selected organisation on Homepage
+  function changeOrg(id){
+  var user_details = JSON.parse(localStorage.getItem('user_details'));
+  localStorage.setItem('orgid',id);
+  window.location.href= "homepage.html";
+  }
+  
+  
+  //Function to Log-out and remove items from localstorage (except drafts)
+  function logout(){
+  if(localStorage){
+  localStorage.removeItem("user_details");
+  localStorage.removeItem("orgid");
+  localStorage.removeItem("userpassword");
+  localStorage.removeItem("phonenumber");
+  localStorage.removeItem("useremail");
+  
+  } 
+  window.location.href="index.html";
+  }
+  
+  
+  //Function for on click for contact us
+  function contact(){
+  window.open('http://ruralict.cse.iitb.ac.in/AFC/Document.jsp#no-back-button','_system','location=yes');
+  }
+ 
+  
+// Function to relod/refresh to Check Organisation Status
+function loginAgain(){
+
+  var pass= localStorage.getItem('userpassword');
+  var num = localStorage.getItem('phonenumber');
+		
+var signin_jsonobj = JSON.stringify({'phonenumber':num,'password':pass});           // json to be sent
+
+var xhr = new XMLHttpRequest();													    // requesting server-side for login validation
+//xhr.withCredentials = true;
+
+xhr.open("POST", "http://ruralict.cse.iitb.ac.in/RuralIvrs/app/login");																
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+  
+    var signin_result = JSON.parse(this.responseText);  // response from server-side
+	//alert(this.responseText);
+	//validate if request was successful
+	if(signin_result.Authentication==='success'){
+	if(signin_result.Error){
+	alert(signin_result.Error);
+	return false;
+	}
+	else{                                                                          // go to homepage and store respective values in localstorage
+	localStorage.setItem('user_details',JSON.stringify(signin_result));
+	window.location.href="homepage.html";
+	}
+	
+	}
+	
+	else {
+	alert("Server Error");
+	return false;
+	}
+ }
+}
+xhr.send(signin_jsonobj);    //send data onto server
+  }
+ 
+
+ // Function to select organisations other than already chosen. 
+ function addOrg(){
+  
+  var num = localStorage.getItem('phonenumber');
+  var pass = localStorage.getItem('userpassword');
+  
+  var data = JSON.stringify({phonenumber:num,password:pass});
+  $('#here').empty();
+  
+  
+  var xhr = new XMLHttpRequest();													    // requesting server-side for login validation
+//xhr.withCredentials = true;
+
+xhr.open("POST", "http://ruralict.cse.iitb.ac.in/RuralIvrs/app/login");																
+ 
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+  
+    var signin_result = JSON.parse(this.responseText);  // response from server-side
+	
+	//validate if request was successful
+	if(signin_result.Authentication==='success'){
+	if(signin_result.Error){
+	alert(signin_result.Error);
+	return false;
+	}
+	else{
+    // go to homepage and store respective values in localstorage
+	localStorage.setItem('user_details',JSON.stringify(signin_result));
+	
+var resultorg = signin_result;																							
+var append='<fieldset data-role="controlgroup">'+
+        '<legend>Select Organisation(s):</legend>';
+
+// loop till organization elements exist
+for(i=0; resultorg.organizations[i]; i++){
+//if(resultorg.organizations[i].status == 'Pending'){
+//append+= '<p id="p1"><b>'+resultorg.organizations[i].name+'</b>- Request Pending</p>';
+//}
+
+if(resultorg.organizations[i].status == 'Rejected'){
+append+= '<label for="'+resultorg.organizations[i].org_id+'">'+resultorg.organizations[i].name+'</label>';
+append+= '<input type="checkbox" name="org" id="'+resultorg.organizations[i].org_id+'" value="'+resultorg.organizations[i].name+'">';
+}
+}
+
+
+append+= '</fieldset>'; 
+$(append).appendTo( "#here" ).enhanceWithin();
+
+	}
+	}
+	
+	else{
+	alert("Server Error");
+	return false;
+	}
+ }
+}
+
+xhr.send(data);    //send data onto server
+
+  }
+ 
+</script>
+
+</div>
+
+<div data-role="page" id="aboutus">
+ 
+<div data-role="header" data-position="fixed"  data-theme= "b" >
+<img src="images/cart.png" style="width:20px;height:20px;"> Cart </img>
+</div>
+<br><br>
+
+<div data-role="main" class="ui-content" >
+<p id="p1"><img src="images/cart.png" style="width:150px;height:150px;"></img></p>
+<br>
+<h3 id="h31"><b>About Us</b></h3>
+<br>
+<p id="p1">Cart app will let you buy your choice of vegetables/fruits from NGO's while ensuring quality product and delivery. </p>
+<br><br><br>
+<h3 id="h31" ><b>Built At IIT-Bombay@2015</b></h3>
+</div>
+
+<div data-role="footer" data-position="fixed" data-theme="b">
+    <h1>IIT-B</h1>
+ </div>
+
+
+</div> 
+
+ <div data-role="page" id="orgpopup" >
+   
+	 <div data-role="main" class="ui-content" >
+	 <div id ="here">
+	
+    </div>
+	
+	<a href="#homepage" onclick="addNew();" class="ui-btn ui-btn-b ui-shadow ui-corner-all" >Add organisations</a>
+	
+	</div>
+	
+	<script>
+	
+// Function to send request to selected organisations
+function addNew(){
+  var num = localStorage.getItem('phonenumber');
+   var num2 = num.substr(2, 12); // to crop "91" from stored mobile number
+	
+	//validation for selecting atleast one organization
+	var inputs = document.getElementsByTagName('input');
+    var is_checked = false;
+    for(var x = 0; x < inputs.length; x++) {
+    if(inputs[x].type == 'checkbox' && inputs[x].name == 'org') {
+        is_checked = inputs[x].checked;
+        if(is_checked) break;
+    }
+    }
+	
+	if(!is_checked){
+	alert('Select at least one organization');
+	//return false;
+	} 
+	
+	
+	var json_obj = {};
+	json_obj['phonenumber'] = num2;
+	json_obj['email'] = localStorage.getItem('useremail');
+	json_obj['orglist']= new Array();
+	
+	var orgs = new Array();								// array to store selected organisations in sign up form
+	$("input:checkbox[name=org]:checked").each(function(){
+	orgs.push($(this).attr("id"));
+    });
+	
+	
+	
+	var i=0;
+	while(orgs[i]){
+	var json_orglist = {};
+	json_orglist['org_id']=orgs[i];
+	json_obj['orglist'].push(json_orglist);
+	i++;
+	}
+	
+var jobj = JSON.stringify(json_obj);  //JSON to be sent to register	
+
+var xhr = new XMLHttpRequest();													    // requesting server-side for registering new user
+//xhr.withCredentials = true;
+
+xhr.open("POST", "http://ruralict.cse.iitb.ac.in/RuralIvrs/app/orgsave");
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+
+	var responseresult = JSON.parse(this.responseText);
+	
+	if(responseresult.Status==='Success'){
+     return true;
+	}
+	
+	else if (responseresult.Status==='Failure'){
+    alert(responseresult.Error);
+	}
+	
+	else{
+    alert(responseresult.error);
+	}
+	//go back to Index page after successful/failed registration
+    //window.location.href="index.html";
+}
+}
+xhr.send(jobj);		
+	}
+	</script>
+
+	</div> 
+	
+	
+<script type="text/javascript" src="phonegap.js"></script>  
+</body>
+</html>
+
+
